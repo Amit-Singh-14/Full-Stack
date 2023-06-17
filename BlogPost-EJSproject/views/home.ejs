@@ -1,0 +1,16 @@
+<%- include("partials/header"); %>
+
+    <a class="btn btn-primary" href="/compose">ADD POST</a>
+    <p>
+        <% homedata.forEach(data=> { %>
+            <h1>
+                <%= data.title; %>
+            </h1>
+            <p>
+                <%= data.body.slice(0,90)+"..."; %> <a href="/post/<%= data.title %>">read me</a>
+            </p>
+
+            <% }) %>
+    </p>
+
+    <%- include("partials/footer"); %>

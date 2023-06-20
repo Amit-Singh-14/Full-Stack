@@ -3,7 +3,7 @@ html {
   background-image: -webkit-linear-gradient(-65deg, #b44141 50%, #fde4e4 50%);
 
   min-height: 100vh;
-  font-family: "helvetica neue";
+  font-family: "PT Serif", serif;
 }
 
 h1 {

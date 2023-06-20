@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 const uri =
-  "mongodb+srv://admin:root@cluster0.mfanljo.mongodb.net/todoListDB?retryWrites=true&w=majority";
+  "mongodb+srv://<username>:<password>@cluster0.mfanljo.mongodb.net/todoListDB?retryWrites=true&w=majority";
 
 mongoose
   .connect(uri)

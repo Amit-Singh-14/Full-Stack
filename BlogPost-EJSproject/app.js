@@ -2,58 +2,88 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 var _ = require("lodash");
-
-const homeStartingContent =
-  "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
-const aboutContent =
-  "Hac habitasse platea dictumst vestibulum rhoncus est pellentesque. Dictumst vestibulum rhoncus est pellentesque elit ullamcorper. Non diam phasellus vestibulum lorem sed. Platea dictumst quisque sagittis purus sit. Egestas sed sed risus pretium quam vulputate dignissim suspendisse. Mauris in aliquam sem fringilla. Semper risus in hendrerit gravida rutrum quisque non tellus orci. Amet massa vitae tortor condimentum lacinia quis vel eros. Enim ut tellus elementum sagittis vitae. Mauris ultrices eros in cursus turpis massa tincidunt dui.";
-const contactContent =
-  "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
-
-const postarray = [];
+const mongoose = require("mongoose");
+const sort = require(__dirname + "/public/function/sort.js");
+const data = require(__dirname + "/public/data/defaultData.js");
 
 const app = express();
-
 app.set("view engine", "ejs");
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+const uri =
+  "mongodb+srv://<username>:<password>@cluster0.mfanljo.mongodb.net/BlogpostDB?retryWrites=true&w=majority";
+
+const homelist = mongoose.Schema({
+  title: String,
+  body: String,
+});
+
+const List = mongoose.model("List", homelist);
+
+const homeStarting = new List({
+  title: "Home",
+  body: data.homeStartingContent,
+});
+
+// homeStarting.save();
+// const postarray = [homeStarting];
+
+mongoose
+  .connect(uri)
+  .then(() => console.log("db connected"))
+  .catch((err) => console.log(err));
+
+// render home page with data
 app.get("/", (req, res) => {
-  res.render("home", { homedata: postarray });
+  List.find().then((founddata) => {
+    console.log(founddata);
+    sort.doSorting(founddata);
+    res.render("home", { homedata: founddata });
+  });
   // console.log(postarray);
 });
 
 app.get("/about", (req, res) => {
-  res.render("about", { aboutdata: aboutContent });
+  res.render("about", { aboutdata: data.aboutContent });
 });
 
 app.get("/contact", (req, res) => {
-  res.render("contact", { contactdata: contactContent });
+  res.render("contact", { contactdata: data.contactContent });
 });
 
+//render compose page
 app.get("/compose", (req, res) => {
   res.render("compose");
 });
 
+// post req from compose page to add data
 app.post("/compose", (req, res) => {
-  const post = {
+  const post = new List({
     title: req.body.posttitle,
     body: req.body.postbody,
-  };
-  postarray.push(post);
+  });
+  post.save();
   res.redirect("/");
 });
 
+// individual pages
 app.get("/post/:postid", (req, res) => {
-  const id = _.lowerCase(req.params.postid);
+  const id = req.params.postid;
 
-  postarray.find((post) => {
-    const storetitle = _.lowerCase(post.title);
-    storetitle === id
-      ? res.render("post", { posttitle: post.title, postbody: post.body })
-      : console.log("match not found.");
+  console.log(id);
+  List.find({ title: id }).then((founddata) => {
+    console.log(founddata);
+    res.render("post", {
+      posttitle: founddata[0].title,
+      postbody: founddata[0].body,
+    });
   });
+  // postarray.find((post) => {
+  //   const storetitle = _.lowerCase(post.title);
+  //   storetitle === id
+  //     : console.log("match not found.");
+  // });
 });
 
 app.listen(3000, function () {

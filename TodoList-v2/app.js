@@ -3,7 +3,7 @@ const bodyParser = require("body-parser");
 const date = require(__dirname + "/date.js");
 const mongoose = require("mongoose");
 const _ = require("lodash");
-const { name } = require("ejs");
+const ejs = require("ejs");
 const app = express();
 //to use ejs
 app.set("view engine", "ejs");

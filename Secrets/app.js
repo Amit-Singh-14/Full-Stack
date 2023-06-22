@@ -3,7 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-const encrpyt = require("mongoose-encryption");
+const md5 = require("md5");
 
 const app = express();
 app.set("view engine", "ejs");
@@ -17,13 +17,6 @@ mongoose.connect("mongodb://127.0.0.1:27017/userDB").then(() => {
 const userSchema = new mongoose.Schema({
   email: String,
   password: String,
-});
-
-// adding plugin ye auto matically jaab save() karte toh encrypt kr deta
-// and find() par decrypt kr dega
-userSchema.plugin(encrpyt, {
-  secret: process.env.SECRET,
-  encryptedFields: ["password"],
 });
 
 const User = mongoose.model("User", userSchema);
@@ -41,7 +34,7 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const newUser = new User({
     email: req.body.username,
-    password: req.body.password,
+    password: md5(req.body.password),
   });
   newUser
     .save()
@@ -53,9 +46,12 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  User.findOne({ email: req.body.username }).then((result) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  User.findOne({ email: username }).then((result) => {
     console.log(result);
-    if (result.password === req.body.password) res.render("secrets");
+    if (result.password === md5(password)) res.render("secrets");
     else res.send("invalid username or apssword");
   });
 });
